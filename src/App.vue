@@ -1,9 +1,10 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png" />
     <Table
       endpoint="https://jsonplaceholder.typicode.com/users"
       :sorting="true"
+      :pagination="true"
+      :searching="true"
     />
   </div>
 </template>
@@ -20,12 +21,15 @@ export default {
 </script>
 
 <style>
+body {
+  background-color: #212529;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  color: white;
   margin-top: 60px;
 }
 </style>

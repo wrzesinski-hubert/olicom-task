@@ -14,15 +14,23 @@
         <tr>
           <th
             class="header"
-            v-for="title in getTitles"
+            v-for="title in columns"
             :key="title"
-            @click="sortBy(title)"
+            @click="sortBy(columns.indexOf(title))"
           >
             {{ title }}
-            <span v-if="currentSort === title && currentSortDir === 'asc'"
+            <span
+              v-if="
+                currentSort === columns.indexOf(title) &&
+                  currentSortDir === 'asc'
+              "
               >⇓</span
             >
-            <span v-else-if="currentSort === title && currentSortDir === 'desc'"
+            <span
+              v-else-if="
+                currentSort === columns.indexOf(title) &&
+                  currentSortDir === 'desc'
+              "
               >⇑</span
             >
           </th>
@@ -53,6 +61,7 @@
 </template>
 
 <script>
+import get from "lodash.get";
 export default {
   name: "Table",
   props: {
@@ -60,13 +69,12 @@ export default {
     sorting: Boolean,
     pagination: Boolean,
     searching: Boolean,
+    columns: Array,
   },
   data() {
     return {
       users: [],
-      users2: [],
-      titles: [],
-      currentSort: "name",
+      currentSort: "",
       currentSortDir: "asc",
       searchQuery: "",
       pageSize: "3",
@@ -83,16 +91,45 @@ export default {
       if (this.sorting) {
         if (prop === this.currentSort) {
           this.currentSortDir = this.currentSortDir === "asc" ? "desc" : "asc";
+        } else {
+          this.currentSort = prop;
+          this.currentSortDir = "asc";
         }
-        this.currentSort = prop;
       }
     },
     nextPage() {
-      if (this.currentPage * this.pageSize < this.filteredResults.length)
+      if (this.currentPage * this.pageSize < this.usersInTable.length)
         this.currentPage++;
     },
     prevPage() {
       if (this.currentPage > 1) this.currentPage--;
+    },
+    prepareUser(user) {
+      return this.columns.map((column) => get(user, column));
+    },
+    isMatchingSearchQuery(user) {
+      if (this.searchQuery && this.searching) {
+        const normalizedUser = user.map((property) =>
+          property.toString().toLowerCase()
+        );
+        return normalizedUser.some((r) =>
+          r.includes(this.searchQuery.toLowerCase())
+        );
+      } else {
+        return true;
+      }
+    },
+    sortingAlgorithm(a, b) {
+      let modifier = 1;
+      if (this.currentSortDir === "desc") modifier = -1;
+      if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+      if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+      return 0;
+    },
+    paginate(row, index) {
+      let start = (this.currentPage - 1) * this.pageSize;
+      let end = this.currentPage * this.pageSize;
+      if (index >= start && index < end) return true;
     },
   },
   watch: {
@@ -101,48 +138,15 @@ export default {
     },
   },
   computed: {
-    userToTable() {
-      this.users.map(
-        ({
-          name,
-          email,
-          company: { name: companyName },
-          address: { city: addressCity },
-          website,
-        }) =>
-          this.users2.push({ name, email, companyName, addressCity, website })
-      );
-      return this.users2;
-    },
-    getTitles() {
-      this.users2.map((item) => {
-        this.titles.push(Object.keys(item));
-      });
-      return this.titles[0];
-    },
-
-    filteredResults() {
-      if (this.searchQuery && this.searching) {
-        return this.userToTable.filter((item) => {
-          var array = Object.keys(item).map((key) => {
-            return item[key].toString().toLowerCase();
-          });
-          return array.some((r) => r.includes(this.searchQuery.toLowerCase()));
-        });
-      } else {
-        return this.userToTable;
-      }
+    usersInTable() {
+      return this.users
+        .slice(0)
+        .map(this.prepareUser)
+        .filter(this.isMatchingSearchQuery)
+        .sort(this.sortingAlgorithm);
     },
     sortedUsers() {
-      const sorted = this.filteredResults.slice(0).sort((a, b) => {
-        let modifier = 1;
-        if (this.currentSortDir === "desc") modifier = -1;
-        if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
-        if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
-        return 0;
-      });
-
-      const paginated = sorted.filter((row, index) => {
+      const paginated = this.usersInTable.filter((row, index) => {
         let start = (this.currentPage - 1) * this.pageSize;
         let end = this.currentPage * this.pageSize;
         if (index >= start && index < end) return true;
@@ -150,7 +154,7 @@ export default {
       if (this.pagination) {
         return paginated;
       } else {
-        return sorted;
+        return this.usersInTable;
       }
     },
   },
@@ -171,17 +175,6 @@ export default {
 .page {
   color: white;
   margin: 10px;
-}
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
 }
 a {
   color: #42b983;

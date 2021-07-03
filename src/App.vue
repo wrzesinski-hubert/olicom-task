@@ -5,6 +5,7 @@
       :sorting="true"
       :pagination="true"
       :searching="true"
+      :columns="['name', 'email', 'company.name', 'website', 'address.city']"
     />
   </div>
 </template>

@@ -78,8 +78,8 @@ export default {
       currentSort: "",
       currentSortDir: "asc",
       searchQuery: "",
-      pageSize: "3",
-      currentPage: "1",
+      pageSize: 3,
+      currentPage: 1,
     };
   },
   mounted() {

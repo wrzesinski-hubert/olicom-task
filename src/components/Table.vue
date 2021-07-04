@@ -1,63 +1,64 @@
 <template>
-  <span>
-    <div class="input-wrapper" v-if="searching">
-      <input
-        class="form-control mr-sm-2"
-        type="search"
-        placeholder="Search"
-        aria-label="Search"
-        v-model="searchQuery"
-      />
-    </div>
-    <div class="table-responsive">
-      <table class="table table-dark">
-        <tr>
-          <th
-            class="header"
-            v-for="title in columns"
-            :key="title"
-            @click="sortBy(columns.indexOf(title))"
-          >
-            {{ title }}
-            <span
-              v-if="
-                currentSort === columns.indexOf(title) &&
-                  currentSortDir === 'asc'
-              "
-              >⇓</span
+  <div class="wrap-all">
+    <span>
+      <div class="input-wrapper" v-if="searching">
+        <input
+          class="form-control mr-sm-2"
+          type="search"
+          placeholder="Search"
+          aria-label="Search"
+          v-model="searchQuery"
+        />
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark">
+          <tr>
+            <th
+              class="table-header"
+              v-for="title in columns"
+              :key="title"
+              @click="sortBy(columns.indexOf(title))"
             >
-            <span
-              v-else-if="
-                currentSort === columns.indexOf(title) &&
-                  currentSortDir === 'desc'
-              "
-              >⇑</span
-            >
-          </th>
-        </tr>
-        <tr v-for="userObject in sortedUsers" :key="userObject.name">
-          <td v-for="user in userObject" :key="user.name">
-            <div v-if="user.includes(`@`)">
-              <a :href="`mailto:` + user">{{ user }}</a>
-            </div>
-            <div v-else>{{ user }}</div>
-          </td>
-        </tr>
-      </table>
-    </div>
-
+              {{ title }}
+              <span
+                v-if="
+                  currentSort === columns.indexOf(title) &&
+                    currentSortDir === 'asc'
+                "
+                >⇓</span
+              >
+              <span
+                v-else-if="
+                  currentSort === columns.indexOf(title) &&
+                    currentSortDir === 'desc'
+                "
+                >⇑</span
+              >
+            </th>
+          </tr>
+          <tr v-for="userObject in paginatedUsers" :key="userObject.name">
+            <td v-for="user in userObject" :key="user.name">
+              <div v-if="user.includes(`@`)">
+                <a :href="`mailto:` + user">{{ user }}</a>
+              </div>
+              <div v-else>{{ user }}</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </span>
     <span v-if="pagination">
       <button type="button" class="btn btn-primary" @click="prevPage()">
         Prev
       </button>
-      <span class="page">
+      <span class="page-number">
         {{ currentPage }}
       </span>
       <button type="button" class="btn btn-primary" @click="nextPage()">
         Next
       </button>
     </span>
-  </span>
+  </div>
 </template>
 
 <script>
@@ -126,11 +127,6 @@ export default {
       if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
       return 0;
     },
-    paginate(row, index) {
-      let start = (this.currentPage - 1) * this.pageSize;
-      let end = this.currentPage * this.pageSize;
-      if (index >= start && index < end) return true;
-    },
   },
   watch: {
     searchQuery() {
@@ -145,7 +141,7 @@ export default {
         .filter(this.isMatchingSearchQuery)
         .sort(this.sortingAlgorithm);
     },
-    sortedUsers() {
+    paginatedUsers() {
       const paginated = this.usersInTable.filter((row, index) => {
         let start = (this.currentPage - 1) * this.pageSize;
         let end = this.currentPage * this.pageSize;
@@ -161,18 +157,24 @@ export default {
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.wrap-all {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-bottom: 10px;
+}
 .input-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   margin: 10px;
 }
-.header {
+.table-header {
   cursor: pointer;
 }
-.page {
+.page-number {
   color: white;
   margin: 10px;
 }

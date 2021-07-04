@@ -31,6 +31,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: white;
-  margin-top: 60px;
+  margin-top: 30px;
+  height: calc(100vh - 30px);
+  display: flex;
+  flex-direction: column;
 }
 </style>
